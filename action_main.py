@@ -59,6 +59,7 @@ def main():
     include_forks = config.get('include_forks', False)
     excluded_languages = config.get('excluded_languages', ['HTML', 'CSS'])
     hide_private_repo_names = config.get('hide_private_repo_names', False)
+    dark_mode = config.get('dark_mode', False)
 
     if not token:
         print("Error: GitHub token not found in config")
@@ -103,7 +104,7 @@ def main():
     print(f"  Top language by weighted: {top_by_weighted}")
 
     print(f"\nCreating visualizations (types: {', '.join(args.types)})...")
-    visualizer = Visualizer(args.output)
+    visualizer = Visualizer(args.output, dark_mode=dark_mode)
 
     for viz_type in args.types:
         if viz_type == 'leaderboard':

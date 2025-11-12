@@ -36,6 +36,11 @@ def parse_args():
         default=5,
         help='Number of top contributing repos to show in leaderboard breakdown (default: 5)'
     )
+    parser.add_argument(
+        '--dark-mode',
+        action='store_true',
+        help='Enable dark mode theme for visualizations'
+    )
     return parser.parse_args()
 
 def load_config(config_path: str = 'config.json'):
@@ -104,7 +109,7 @@ def main():
     print(f"  Top language by weighted: {top_by_weighted}")
 
     print(f"\nCreating visualizations (types: {', '.join(args.types)})...")
-    visualizer = Visualizer(args.output)
+    visualizer = Visualizer(args.output, dark_mode=args.dark_mode)
 
     for viz_type in args.types:
         if viz_type == 'leaderboard':

@@ -41,6 +41,12 @@ if [ "$INCLUDE_FORKS" = "true" ]; then
     INCLUDE_FORKS_BOOL="true"
 fi
 
+# Convert dark_mode to boolean
+DARK_MODE_BOOL="false"
+if [ "$DARK_MODE" = "true" ]; then
+    DARK_MODE_BOOL="true"
+fi
+
 # Create config.json
 cat >/action/config.json <<EOF
 {
@@ -48,7 +54,8 @@ cat >/action/config.json <<EOF
   "excluded_repos": $EXCLUDED_REPOS_JSON,
   "include_forks": $INCLUDE_FORKS_BOOL,
   "excluded_languages": $EXCLUDED_LANGS_JSON,
-  "hide_private_repo_names": false
+  "hide_private_repo_names": false,
+  "dark_mode": $DARK_MODE_BOOL
 }
 EOF
 

@@ -11,13 +11,14 @@ from PIL import Image
 
 
 class Visualizer:
-    def __init__(self, output_dir: str = 'output'):
+    def __init__(self, output_dir: str = 'output', dark_mode: bool = False):
         self.output_dir = output_dir
         self.badge_cache_dir = os.path.join(output_dir, '.badge_cache')
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(self.badge_cache_dir, exist_ok=True)
         self.badge_cache = {}
         self.languages = self._load_languages()
+        self.dark_mode = dark_mode
         self._setup_modern_style()
 
     def _setup_modern_style(self):
@@ -29,14 +30,50 @@ class Visualizer:
         plt.rcParams['axes.titleweight'] = 'bold'
         plt.rcParams['xtick.labelsize'] = 9
         plt.rcParams['ytick.labelsize'] = 9
-        plt.rcParams['figure.facecolor'] = 'white'
-        plt.rcParams['axes.facecolor'] = '#fafafa'
-        plt.rcParams['axes.edgecolor'] = '#e0e0e0'
+
+        if self.dark_mode:
+            plt.rcParams['figure.facecolor'] = '#0d1117'
+            plt.rcParams['axes.facecolor'] = '#161b22'
+            plt.rcParams['axes.edgecolor'] = '#30363d'
+            plt.rcParams['axes.labelcolor'] = '#e6edf3'
+            plt.rcParams['text.color'] = '#e6edf3'
+            plt.rcParams['xtick.color'] = '#e6edf3'
+            plt.rcParams['ytick.color'] = '#e6edf3'
+            plt.rcParams['grid.color'] = '#30363d'
+        else:
+            plt.rcParams['figure.facecolor'] = 'white'
+            plt.rcParams['axes.facecolor'] = '#fafafa'
+            plt.rcParams['axes.edgecolor'] = '#e0e0e0'
+            plt.rcParams['grid.color'] = '#e0e0e0'
+
         plt.rcParams['axes.linewidth'] = 1.2
-        plt.rcParams['grid.color'] = '#e0e0e0'
         plt.rcParams['grid.linestyle'] = '-'
         plt.rcParams['grid.linewidth'] = 0.8
         plt.rcParams['grid.alpha'] = 0.3
+
+    @property
+    def text_color(self) -> str:
+        return '#e6edf3' if self.dark_mode else '#333333'
+
+    @property
+    def stroke_color(self) -> str:
+        return '#0d1117' if self.dark_mode else 'white'
+
+    @property
+    def spine_color(self) -> str:
+        return '#30363d' if self.dark_mode else '#d0d0d0'
+
+    @property
+    def figure_facecolor(self) -> str:
+        return '#0d1117' if self.dark_mode else 'white'
+
+    @property
+    def donut_center_color(self) -> str:
+        return '#161b22' if self.dark_mode else '#fafafa'
+
+    @property
+    def donut_edge_color(self) -> str:
+        return '#30363d' if self.dark_mode else '#e0e0e0'
 
     def _load_languages(self) -> Dict:
         languages_path = os.path.join(os.path.dirname(__file__), 'languages.json')
@@ -130,7 +167,7 @@ class Visualizer:
         colors = [self._get_color(lang) for lang in languages]
 
         y_pos = range(len(languages))
-        bars = ax.barh(y_pos, values, color=colors, edgecolor='white', linewidth=2,
+        bars = ax.barh(y_pos, values, color=colors, edgecolor='white', linewidth=1,
                       alpha=0.9, height=0.7)
 
         for bar in bars:
@@ -143,8 +180,8 @@ class Visualizer:
             label = self._format_number(value)
             text = ax.text(width, bar.get_y() + bar.get_height()/2,
                    f' {label}',
-                   ha='left', va='center', fontweight='bold', fontsize=10, color='#333333')
-            text.set_path_effects([path_effects.withStroke(linewidth=3, foreground='white')])
+                   ha='left', va='center', fontweight='bold', fontsize=10, color=self.text_color)
+            text.set_path_effects([path_effects.withStroke(linewidth=3, foreground=self.stroke_color)])
 
         for i, language in enumerate(languages):
             badge_img = self._download_badge(language)
@@ -160,18 +197,18 @@ class Visualizer:
         ax.set_yticks(y_pos)
         ax.set_yticklabels([''] * len(languages))
         ax.invert_yaxis()
-        ax.set_xlabel(value_label, fontsize=13, fontweight='bold', color='#333333')
+        ax.set_xlabel(value_label, fontsize=13, fontweight='bold', color=self.text_color)
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_color('#d0d0d0')
+        ax.spines['bottom'].set_color(self.spine_color)
         ax.grid(axis='x', alpha=0.25, linestyle='-', zorder=0)
         ax.set_axisbelow(True)
 
         plt.tight_layout()
         output_path = os.path.join(self.output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor=self.figure_facecolor)
         plt.close()
 
         print(f"Saved: {output_path}")
@@ -205,7 +242,7 @@ class Visualizer:
 
                     bar = ax.barh(i, lines, left=left, height=0.7,
                                 color=base_color, alpha=alpha,
-                                edgecolor='white', linewidth=1.5)
+                                edgecolor='white', linewidth=0.8)
 
                     for patch in bar:
                         patch.set_path_effects([path_effects.SimplePatchShadow(offset=(1, -1),
@@ -218,7 +255,7 @@ class Visualizer:
                     remaining = values[i] - left
                     bar = ax.barh(i, remaining, left=left, height=0.7,
                                 color=base_color, alpha=0.25,
-                                edgecolor='white', linewidth=1.5)
+                                edgecolor='white', linewidth=0.8)
 
                     for patch in bar:
                         patch.set_path_effects([path_effects.SimplePatchShadow(offset=(1, -1),
@@ -227,7 +264,7 @@ class Visualizer:
             else:
                 bar = ax.barh(i, values[i], height=0.7,
                             color=base_colors[i], alpha=0.9,
-                            edgecolor='white', linewidth=2)
+                            edgecolor='white', linewidth=1)
 
                 for patch in bar:
                     patch.set_path_effects([path_effects.SimplePatchShadow(offset=(1, -1),
@@ -238,8 +275,8 @@ class Visualizer:
             label = self._format_number(value)
             text = ax.text(value, i,
                    f' {label}',
-                   ha='left', va='center', fontweight='bold', fontsize=10, color='#333333')
-            text.set_path_effects([path_effects.withStroke(linewidth=3, foreground='white')])
+                   ha='left', va='center', fontweight='bold', fontsize=10, color=self.text_color)
+            text.set_path_effects([path_effects.withStroke(linewidth=3, foreground=self.stroke_color)])
 
         for i, language in enumerate(languages):
             badge_img = self._download_badge(language)
@@ -255,18 +292,18 @@ class Visualizer:
         ax.set_yticks(y_pos)
         ax.set_yticklabels([''] * len(languages))
         ax.invert_yaxis()
-        ax.set_xlabel(value_label, fontsize=13, fontweight='bold', color='#333333')
+        ax.set_xlabel(value_label, fontsize=13, fontweight='bold', color=self.text_color)
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_color('#d0d0d0')
+        ax.spines['bottom'].set_color(self.spine_color)
         ax.grid(axis='x', alpha=0.25, linestyle='-', zorder=0)
         ax.set_axisbelow(True)
 
         plt.tight_layout()
         output_path = os.path.join(self.output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor=self.figure_facecolor)
         plt.close()
 
         print(f"Saved: {output_path}")
@@ -345,7 +382,7 @@ class Visualizer:
         colors = [self._get_color(lang) for lang in languages]
 
         x_pos = range(len(languages))
-        bars = ax.bar(x_pos, values, color=colors, edgecolor='white', linewidth=2,
+        bars = ax.bar(x_pos, values, color=colors, edgecolor='white', linewidth=1,
                      alpha=0.9, width=0.7)
 
         for bar in bars:
@@ -358,23 +395,23 @@ class Visualizer:
             label = self._format_number(value)
             text = ax.text(bar.get_x() + bar.get_width()/2, height,
                    label, ha='center', va='bottom', fontweight='bold', fontsize=9,
-                   color='#333333')
-            text.set_path_effects([path_effects.withStroke(linewidth=2, foreground='white')])
+                   color=self.text_color)
+            text.set_path_effects([path_effects.withStroke(linewidth=2, foreground=self.stroke_color)])
 
         ax.set_xticks(x_pos)
         ax.set_xticklabels(languages, rotation=45, ha='right', fontsize=9)
-        ax.set_ylabel(value_label, fontsize=11, fontweight='bold', color='#333333')
+        ax.set_ylabel(value_label, fontsize=11, fontweight='bold', color=self.text_color)
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color('#d0d0d0')
-        ax.spines['bottom'].set_color('#d0d0d0')
+        ax.spines['left'].set_color(self.spine_color)
+        ax.spines['bottom'].set_color(self.spine_color)
         ax.grid(axis='y', alpha=0.25, linestyle='-', zorder=0)
         ax.set_axisbelow(True)
 
         plt.tight_layout()
         output_path = os.path.join(self.output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor=self.figure_facecolor)
         plt.close()
 
         print(f"Saved: {output_path}")
@@ -417,7 +454,7 @@ class Visualizer:
         colors = [self._get_color(lang) for lang in languages]
 
         y_pos = range(len(languages))
-        bars = ax.barh(y_pos, values, color=colors, edgecolor='white', linewidth=2,
+        bars = ax.barh(y_pos, values, color=colors, edgecolor='white', linewidth=1,
                       alpha=0.9, height=0.65)
 
         for bar in bars:
@@ -430,8 +467,8 @@ class Visualizer:
             label = self._format_number(value)
             text = ax.text(width, bar.get_y() + bar.get_height()/2,
                    f' {label}', ha='left', va='center', fontweight='bold',
-                   fontsize=9, color='#333333')
-            text.set_path_effects([path_effects.withStroke(linewidth=2, foreground='white')])
+                   fontsize=9, color=self.text_color)
+            text.set_path_effects([path_effects.withStroke(linewidth=2, foreground=self.stroke_color)])
 
         for i, language in enumerate(languages):
             badge_img = self._download_badge(language)
@@ -443,23 +480,23 @@ class Visualizer:
             else:
                 ax.text(-0.02, i, language, ha='right', va='center',
                        transform=ax.get_yaxis_transform(), fontsize=9,
-                       fontweight='bold', color='#333333')
+                       fontweight='bold', color=self.text_color)
 
         ax.set_yticks(y_pos)
         ax.set_yticklabels([''] * len(languages))
         ax.invert_yaxis()
-        ax.set_xlabel(value_label, fontsize=11, fontweight='bold', color='#333333')
+        ax.set_xlabel(value_label, fontsize=11, fontweight='bold', color=self.text_color)
 
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_color('#d0d0d0')
+        ax.spines['bottom'].set_color(self.spine_color)
         ax.grid(axis='x', alpha=0.25, linestyle='-', zorder=0)
         ax.set_axisbelow(True)
 
         plt.tight_layout()
         output_path = os.path.join(self.output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor=self.figure_facecolor)
         plt.close()
 
         print(f"Saved: {output_path}")
@@ -518,7 +555,7 @@ class Visualizer:
             startangle=90,
             pctdistance=0.82 if donut else 0.65,
             wedgeprops={'width': 0.4 if donut else 1, 'edgecolor': 'white',
-                       'linewidth': 2, 'alpha': 0.9},
+                       'linewidth': 1, 'alpha': 0.9},
             textprops={'fontweight': 'bold', 'fontsize': 9}
         )
 
@@ -534,12 +571,13 @@ class Visualizer:
             autotext.set_path_effects([path_effects.withStroke(linewidth=2, foreground='#00000050')])
 
         if donut:
-            centre_circle = plt.Circle((0, 0), 0.60, fc='#fafafa', ec='#e0e0e0', linewidth=2)
+            centre_circle = plt.Circle((0, 0), 0.60, fc=self.donut_center_color,
+                                      ec=self.donut_edge_color, linewidth=1)
             fig.gca().add_artist(centre_circle)
 
         plt.tight_layout()
         output_path = os.path.join(self.output_dir, filename)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor=self.figure_facecolor)
         plt.close()
 
         print(f"Saved: {output_path}")

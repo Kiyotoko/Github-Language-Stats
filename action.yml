@@ -8,9 +8,8 @@ branding:
 
 inputs:
   github_token:
-    description: "GitHub token with repo scope (uses GITHUB_TOKEN by default)"
-    required: false
-    default: ${{ github.token }}
+    description: "Personal Access Token with repo scope (required - see README for setup)"
+    required: true
 
   visualization_types:
     description: "Space-separated list of visualization types to generate"
@@ -47,6 +46,11 @@ inputs:
     required: false
     default: "Update language statistics"
 
+  dark_mode:
+    description: "Enable dark mode theme for visualizations"
+    required: false
+    default: "false"
+
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -59,3 +63,4 @@ runs:
     EXCLUDE_LANGUAGES: ${{ inputs.exclude_languages }}
     TOP_REPOS_COUNT: ${{ inputs.top_repos_count }}
     COMMIT_MESSAGE: ${{ inputs.commit_message }}
+    DARK_MODE: ${{ inputs.dark_mode }}
