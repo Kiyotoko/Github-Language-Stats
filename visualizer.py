@@ -198,7 +198,6 @@ class Visualizer:
             if top_repos:
                 left = 0
                 base_color = base_colors[i]
-                base_rgb = self._hex_to_rgb(base_color)
 
                 for j, (repo, lines) in enumerate(top_repos):
                     alpha = 1.0 - (j * 0.15)
@@ -214,6 +213,17 @@ class Visualizer:
                                                path_effects.Normal()])
 
                     left += lines
+
+                if left < values[i]:
+                    remaining = values[i] - left
+                    bar = ax.barh(i, remaining, left=left, height=0.7,
+                                color=base_color, alpha=0.25,
+                                edgecolor='white', linewidth=1.5)
+
+                    for patch in bar:
+                        patch.set_path_effects([path_effects.SimplePatchShadow(offset=(1, -1),
+                                               shadow_rgbFace='#00000015', alpha=0.3),
+                                               path_effects.Normal()])
             else:
                 bar = ax.barh(i, values[i], height=0.7,
                             color=base_colors[i], alpha=0.9,
