@@ -1,0 +1,61 @@
+name: "GitHub Profile Language Analytics"
+description: "Generate beautiful visualizations of your programming language usage across all repositories"
+author: "StefVuck"
+
+branding:
+  icon: "bar-chart-2"
+  color: "blue"
+
+inputs:
+  github_token:
+    description: "GitHub token with repo scope (uses GITHUB_TOKEN by default)"
+    required: false
+    default: ${{ github.token }}
+
+  visualization_types:
+    description: "Space-separated list of visualization types to generate"
+    required: false
+    default: "leaderboard bar pie"
+
+  output_path:
+    description: "Directory to save generated images"
+    required: false
+    default: "github-stats"
+
+  exclude_repos:
+    description: "Comma-separated list of repository names to exclude"
+    required: false
+    default: ""
+
+  include_forks:
+    description: "Whether to include forked repositories"
+    required: false
+    default: "false"
+
+  exclude_languages:
+    description: "Comma-separated list of languages to exclude"
+    required: false
+    default: "HTML,CSS"
+
+  top_repos_count:
+    description: "Number of top contributing repos to show in leaderboard breakdown"
+    required: false
+    default: "5"
+
+  commit_message:
+    description: "Commit message for generated images"
+    required: false
+    default: "Update language statistics"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    VISUALIZATION_TYPES: ${{ inputs.visualization_types }}
+    OUTPUT_PATH: ${{ inputs.output_path }}
+    EXCLUDE_REPOS: ${{ inputs.exclude_repos }}
+    INCLUDE_FORKS: ${{ inputs.include_forks }}
+    EXCLUDE_LANGUAGES: ${{ inputs.exclude_languages }}
+    TOP_REPOS_COUNT: ${{ inputs.top_repos_count }}
+    COMMIT_MESSAGE: ${{ inputs.commit_message }}
